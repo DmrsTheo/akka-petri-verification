@@ -44,8 +44,11 @@ object PaymentMessages {
   /** Messages internes pour le protocole de transfert */
   case class DebitResult(result: OperationResult, toAccountId: String, amount: Double,
                          replyTo: akka.actor.typed.ActorRef[TransactionResult]) extends TransactionCommand
-  case class CreditResult(result: OperationResult,
+  case class CreditResult(result: OperationResult, fromAccountId: String, amount: Double,
                           replyTo: akka.actor.typed.ActorRef[TransactionResult]) extends TransactionCommand
+  /** Message interne pour le résultat du rollback (compensation) */
+  case class RollbackResult(result: OperationResult, fromId: String, toId: String,
+                            amount: Double, replyTo: akka.actor.typed.ActorRef[TransactionResult]) extends TransactionCommand
 
   // ===== Réponses du TransactionManager =====
 

@@ -21,13 +21,17 @@ object BankSupervisor {
   def apply(): Behavior[SupervisorCommand] = {
     Behaviors.setup { context =>
       logger.info("BankSupervisor démarré")
-      supervise(Map.empty, context)
+      // Créer l'acteur de journalisation au démarrage
+      val loggingActor = context.spawn(LoggingActor(), "logging-actor")
+      logger.info("LoggingActor créé et intégré au système")
+      supervise(Map.empty, context, loggingActor)
     }
   }
 
   private def supervise(
     accounts: Map[String, ActorRef[AccountCommand]],
-    context: akka.actor.typed.scaladsl.ActorContext[SupervisorCommand]
+    context: akka.actor.typed.scaladsl.ActorContext[SupervisorCommand],
+    loggingActor: ActorRef[LoggingCommand]
   ): Behavior[SupervisorCommand] = {
 
     Behaviors.receiveMessage {
@@ -46,7 +50,18 @@ object BankSupervisor {
           val accountRef = context.spawn(accountBehavior, s"account-$id")
           logger.info(s"Compte $id créé pour $ownerName avec solde initial $initialBalance")
           replyTo ! OperationSuccess(id, initialBalance, s"Compte $id créé avec succès")
-          supervise(accounts + (id -> accountRef), context)
+          
+          // Enregistrer la création du compte
+          loggingActor ! LogAccountOperation(
+            operationType = "ACCOUNT_CREATION",
+            accountId = id,
+            amount = Some(initialBalance),
+            newBalance = initialBalance,
+            status = "SUCCESS",
+            details = s"Compte créé pour $ownerName"
+          )
+          
+          supervise(accounts + (id -> accountRef), context, loggingActor)
         }
 
       case PerformDeposit(accountId, amount, replyTo) =>
@@ -82,7 +97,7 @@ object BankSupervisor {
       case PerformTransfer(fromId, toId, amount, replyTo) =>
         // Créer un TransactionManager dédié pour ce transfert
         val txManager = context.spawn(
-          TransactionManager(accounts),
+          TransactionManager(accounts, loggingActor),
           s"tx-$fromId-$toId-${System.nanoTime()}"
         )
         txManager ! TransferRequest(fromId, toId, amount, replyTo)

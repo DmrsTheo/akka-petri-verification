@@ -69,4 +69,29 @@ object PaymentMessages {
   case class ListAccounts(replyTo: akka.actor.typed.ActorRef[AccountList]) extends SupervisorCommand
 
   case class AccountList(accounts: List[String])
+
+  // ===== Messages vers LoggingActor =====
+
+  sealed trait LoggingCommand
+  case class LogTransaction(
+    transactionType: String,
+    fromAccountId: Option[String],
+    toAccountId: Option[String],
+    amount: Option[Double],
+    status: String,
+    details: String,
+    timestamp: Long = System.currentTimeMillis()
+  ) extends LoggingCommand
+  case class LogAccountOperation(
+    operationType: String,
+    accountId: String,
+    amount: Option[Double],
+    newBalance: Double,
+    status: String,
+    details: String,
+    timestamp: Long = System.currentTimeMillis()
+  ) extends LoggingCommand
+  case class GetTransactionLog(replyTo: akka.actor.typed.ActorRef[TransactionLogResponse]) extends LoggingCommand
+
+  case class TransactionLogResponse(transactions: List[String])
 }

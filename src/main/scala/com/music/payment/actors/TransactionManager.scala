@@ -8,12 +8,15 @@ import org.slf4j.LoggerFactory
 /**
  * Acteur orchestrant les transferts entre comptes.
  *
- * Protocole de transfert en 2 phases :
+ * Protocole de transfert en 2 phases avec compensation (rollback) :
  * 1. Débiter le compte source
- * 2. Si succès → créditer le compte destination
- *    Si échec → annuler la transaction
+ * 2. Si succès du débit → créditer le compte destination
+ *    Si échec du débit → annuler immédiatement
+ * 3. Si échec du crédit → ROLLBACK : re-créditer le compte source
  *
- * Garantit la cohérence des transactions distribuées.
+ * Garantit la cohérence des transactions distribuées :
+ * - L'argent n'est jamais perdu
+ * - Le solde total du système reste constant
  */
 object TransactionManager {
 
@@ -32,6 +35,7 @@ object TransactionManager {
   ): Behavior[TransactionCommand] = {
     Behaviors.receiveMessage {
 
+      // ===== Phase 0 : Réception de la demande de transfert =====
       case TransferRequest(fromId, toId, amount, replyTo) =>
         logger.info(s"Transfert demandé: $fromId → $toId, montant: $amount")
         loggingActor ! LogTransaction(
@@ -43,7 +47,7 @@ object TransactionManager {
           details = s"Transfert initié de $fromId vers $toId"
         )
 
-        // Vérifier que les deux comptes existent
+        // Vérifier que les deux comptes existent AVANT toute opération
         (accounts.get(fromId), accounts.get(toId)) match {
           case (Some(fromAccount), Some(_)) =>
             // Phase 1 : Débiter le compte source
@@ -80,10 +84,11 @@ object TransactionManager {
             Behaviors.same
         }
 
+      // ===== Phase 1 : Résultat du débit =====
       case DebitResult(result, toId, amount, replyTo) =>
         result match {
           case OperationSuccess(fromId, _, _) =>
-            // Phase 2 : Créditer le compte destination
+            // Débit réussi → Phase 2 : Créditer le compte destination
             logger.info(s"Débit réussi sur $fromId, crédit en cours sur $toId")
             loggingActor ! LogTransaction(
               transactionType = "TRANSFER_DEBIT_SUCCESS",
@@ -96,9 +101,10 @@ object TransactionManager {
             accounts.get(toId) match {
               case Some(toAccount) =>
                 val creditAdapter = context.messageAdapter[OperationResult] {
-                  res => CreditResult(res, replyTo)
+                  res => CreditResult(res, fromId, amount, replyTo)
                 }
                 toAccount ! DepositCmd(amount, creditAdapter)
+
               case None =>
                 logger.error(s"Compte destination $toId disparu pendant la transaction!")
                 loggingActor ! LogTransaction(
@@ -114,6 +120,7 @@ object TransactionManager {
             Behaviors.same
 
           case OperationFailure(fromId, reason) =>
+            // Débit refusé (ex: fonds insuffisants) → pas besoin de rollback
             logger.warn(s"Transfert échoué - débit refusé sur $fromId: $reason")
             loggingActor ! LogTransaction(
               transactionType = "TRANSFER_FAILED",
@@ -127,7 +134,8 @@ object TransactionManager {
             Behaviors.same
         }
 
-      case CreditResult(result, replyTo) =>
+      // ===== Phase 2 : Résultat du crédit =====
+      case CreditResult(result, fromId, amount, replyTo) =>
         result match {
           case OperationSuccess(toId, newBalance, _) =>
             logger.info(s"Transfert terminé avec succès, $toId nouveau solde: $newBalance")

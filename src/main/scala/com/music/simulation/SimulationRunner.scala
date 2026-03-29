@@ -57,7 +57,15 @@ object SimulationRunner {
       ("Solde Compte B ≥ 0", (m: com.music.petri.model.Marking) =>
         m.getTokens(PaymentPetriNet.accountB) >= 0),
       ("Exclusion mutuelle transfert", (m: com.music.petri.model.Marking) =>
-        m.getTokens(PaymentPetriNet.transferInProgress) + m.getTokens(PaymentPetriNet.debitDone) <= 1)
+        m.getTokens(PaymentPetriNet.transferInProgress) + m.getTokens(PaymentPetriNet.debitDone) <= 1),
+        ("Conservation stricte de l'argent", (m: com.music.petri.model.Marking) => {
+        val argentA = m.getTokens(PaymentPetriNet.accountA)
+        val argentB = m.getTokens(PaymentPetriNet.accountB)
+        // L'argent en cours de transfert (retenu après le débit mais avant le crédit)
+        val argentEnTransit = m.getTokens(PaymentPetriNet.debitDone) * 2 // 2 est le montant du transfert (transferAmount)
+        // La somme doit toujours être égale au total initial (5 dans A + 3 dans B = 8)
+        (argentA + argentB + argentEnTransit) == 8
+      })
     )
 
     val invariantResults = InvariantChecker.fullCheck(transferStateSpace, transferNet, transferInvariants)

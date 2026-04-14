@@ -1,24 +1,24 @@
 package com.music.payment.model
 
 /**
- * Représente un compte bancaire avec un identifiant, un propriétaire et un solde.
- * Le solde ne doit jamais être négatif (invariant métier).
+ * Represents a bank account with an identifier, an owner and a balance.
+ * The balance must never be negative (business invariant).
  */
 case class Account(
   id: String,
   ownerName: String,
   balance: Double
 ) {
-  require(balance >= 0, s"Le solde du compte $id ne peut pas être négatif: $balance")
+  require(balance >= 0, s"Account $id balance cannot be negative: $balance")
 
   def deposit(amount: Double): Account = {
-    require(amount > 0, "Le montant du dépôt doit être positif")
+    require(amount > 0, "Deposit amount must be positive")
     copy(balance = balance + amount)
   }
 
   def withdraw(amount: Double): Either[String, Account] = {
-    if (amount <= 0) Left("Le montant du retrait doit être positif")
-    else if (amount > balance) Left(s"Fonds insuffisants: solde=$balance, demandé=$amount")
+    if (amount <= 0) Left("Withdrawal amount must be positive")
+    else if (amount > balance) Left(s"Insufficient funds: balance=$balance, requested=$amount")
     else Right(copy(balance = balance - amount))
   }
 }

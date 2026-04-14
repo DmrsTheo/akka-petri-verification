@@ -7,14 +7,14 @@ import com.music.payment.model.Account
 import org.slf4j.LoggerFactory
 
 /**
- * Acteur gérant un compte bancaire individuel.
+ * Actor managing an individual bank account.
  *
- * Responsabilités :
- * - Gérer le solde du compte
- * - Traiter les dépôts et retraits
- * - Garantir l'invariant métier : solde >= 0
+ * Responsibilities :
+ * - Manage account balance
+ * - Process deposits and withdrawals
+ * - Guarantee business invariant : balance >= 0
  *
- * Chaque instance représente un compte unique dans le système distribué.
+ * Each instance represents a unique account in the distributed system.
  */
 object BankAccount {
 
@@ -22,7 +22,7 @@ object BankAccount {
 
   def apply(accountId: String, ownerName: String, initialBalance: Double): Behavior[AccountCommand] = {
     val account = Account(accountId, ownerName, initialBalance)
-    logger.info(s"Compte créé: $accountId (propriétaire: $ownerName, solde initial: $initialBalance)")
+    logger.info(s"Account created: $accountId (owner: $ownerName, initial balance: $initialBalance)")
     active(account)
   }
 
@@ -33,12 +33,12 @@ object BankAccount {
         case DepositCmd(amount, replyTo) =>
           try {
             val updated = account.deposit(amount)
-            logger.info(s"[${account.id}] Dépôt de $amount réussi. Nouveau solde: ${updated.balance}")
-            replyTo ! OperationSuccess(account.id, updated.balance, s"Dépôt de $amount effectué")
+            logger.info(s"[${account.id}] Deposit of $amount successful. New balance: ${updated.balance}")
+            replyTo ! OperationSuccess(account.id, updated.balance, s"Deposit of $amount completed")
             active(updated)
           } catch {
             case e: IllegalArgumentException =>
-              logger.warn(s"[${account.id}] Dépôt échoué: ${e.getMessage}")
+              logger.warn(s"[${account.id}] Deposit failed: ${e.getMessage}")
               replyTo ! OperationFailure(account.id, e.getMessage)
               Behaviors.same
           }
@@ -46,17 +46,17 @@ object BankAccount {
         case WithdrawCmd(amount, replyTo) =>
           account.withdraw(amount) match {
             case Right(updated) =>
-              logger.info(s"[${account.id}] Retrait de $amount réussi. Nouveau solde: ${updated.balance}")
-              replyTo ! OperationSuccess(account.id, updated.balance, s"Retrait de $amount effectué")
+              logger.info(s"[${account.id}] Withdrawal of $amount successful. New balance: ${updated.balance}")
+              replyTo ! OperationSuccess(account.id, updated.balance, s"Withdrawal of $amount completed")
               active(updated)
             case Left(reason) =>
-              logger.warn(s"[${account.id}] Retrait de $amount refusé: $reason")
+              logger.warn(s"[${account.id}] Withdrawal of $amount refused: $reason")
               replyTo ! OperationFailure(account.id, reason)
               Behaviors.same
           }
 
         case GetBalanceCmd(replyTo) =>
-          logger.debug(s"[${account.id}] Consultation du solde: ${account.balance}")
+          logger.debug(s"[${account.id}] Balance query: ${account.balance}")
           replyTo ! BalanceResponse(account.id, account.balance)
           Behaviors.same
       }

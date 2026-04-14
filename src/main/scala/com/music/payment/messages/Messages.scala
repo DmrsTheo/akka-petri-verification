@@ -1,100 +1,86 @@
 package com.music.payment.messages
 
 /**
- * Protocole de messages pour le système de paiement distribué.
- * Définit tous les messages échangés entre les acteurs.
+ * Centralized entry point for all payment system messages.
+ * 
+ * This file re-exports all messages defined in actor-specific files
+ * to allow backward compatibility and better code organization.
+ * 
+ * Messages organized by actor:
+ * - BankAccountMessages: Deposit, withdrawal, balance query
+ * - TransactionMessages: Money transfers between accounts
+ * - SupervisorMessages: Account management and coordination
+ * - LoggingMessages: Operation logging
+ * - CommonMessages: Shared types and responses
  */
 object PaymentMessages {
+  // Re-export for backward compatibility with existing imports
+  
+  // Messages BankAccount
+  type Deposit = BankAccountMessages.Deposit
+  val Deposit = BankAccountMessages.Deposit
+  type Withdraw = BankAccountMessages.Withdraw
+  val Withdraw = BankAccountMessages.Withdraw
+  type GetBalance = BankAccountMessages.GetBalance
+  val GetBalance = BankAccountMessages.GetBalance
+  type AccountCommand = BankAccountMessages.AccountCommand
+  type DepositCmd = BankAccountMessages.DepositCmd
+  val DepositCmd = BankAccountMessages.DepositCmd
+  type WithdrawCmd = BankAccountMessages.WithdrawCmd
+  val WithdrawCmd = BankAccountMessages.WithdrawCmd
+  type GetBalanceCmd = BankAccountMessages.GetBalanceCmd
+  val GetBalanceCmd = BankAccountMessages.GetBalanceCmd
 
-  // ===== Messages vers BankAccount =====
+  // Messages communs
+  type OperationResult = CommonMessages.OperationResult
+  type OperationSuccess = CommonMessages.OperationSuccess
+  val OperationSuccess = CommonMessages.OperationSuccess
+  type OperationFailure = CommonMessages.OperationFailure
+  val OperationFailure = CommonMessages.OperationFailure
+  type BalanceResponse = CommonMessages.BalanceResponse
+  val BalanceResponse = CommonMessages.BalanceResponse
 
-  /** Déposer un montant sur le compte */
-  case class Deposit(amount: Double, replyTo: akka.actor.typed.ActorRef[OperationResult])
+  // Messages Transaction
+  type TransactionCommand = TransactionMessages.TransactionCommand
+  type TransferRequest = TransactionMessages.TransferRequest
+  val TransferRequest = TransactionMessages.TransferRequest
+  type DebitResult = TransactionMessages.DebitResult
+  val DebitResult = TransactionMessages.DebitResult
+  type CreditResult = TransactionMessages.CreditResult
+  val CreditResult = TransactionMessages.CreditResult
+  type RollbackResult = TransactionMessages.RollbackResult
+  val RollbackResult = TransactionMessages.RollbackResult
+  type TransactionResult = TransactionMessages.TransactionResult
+  type TransferSuccess = TransactionMessages.TransferSuccess
+  val TransferSuccess = TransactionMessages.TransferSuccess
+  type TransferFailure = TransactionMessages.TransferFailure
+  val TransferFailure = TransactionMessages.TransferFailure
 
-  /** Retirer un montant du compte */
-  case class Withdraw(amount: Double, replyTo: akka.actor.typed.ActorRef[OperationResult])
+  // Messages Supervisor
+  type SupervisorCommand = SupervisorMessages.SupervisorCommand
+  type CreateAccount = SupervisorMessages.CreateAccount
+  val CreateAccount = SupervisorMessages.CreateAccount
+  type PerformDeposit = SupervisorMessages.PerformDeposit
+  val PerformDeposit = SupervisorMessages.PerformDeposit
+  type PerformWithdraw = SupervisorMessages.PerformWithdraw
+  val PerformWithdraw = SupervisorMessages.PerformWithdraw
+  type QueryBalance = SupervisorMessages.QueryBalance
+  val QueryBalance = SupervisorMessages.QueryBalance
+  type PerformTransfer = SupervisorMessages.PerformTransfer
+  val PerformTransfer = SupervisorMessages.PerformTransfer
+  type ListAccounts = SupervisorMessages.ListAccounts
+  val ListAccounts = SupervisorMessages.ListAccounts
+  type AccountList = SupervisorMessages.AccountList
+  val AccountList = SupervisorMessages.AccountList
 
-  /** Demander le solde actuel */
-  case class GetBalance(replyTo: akka.actor.typed.ActorRef[BalanceResponse])
-
-  /** Type union pour les commandes BankAccount */
-  sealed trait AccountCommand
-  case class DepositCmd(amount: Double, replyTo: akka.actor.typed.ActorRef[OperationResult]) extends AccountCommand
-  case class WithdrawCmd(amount: Double, replyTo: akka.actor.typed.ActorRef[OperationResult]) extends AccountCommand
-  case class GetBalanceCmd(replyTo: akka.actor.typed.ActorRef[BalanceResponse]) extends AccountCommand
-
-  // ===== Réponses du BankAccount =====
-
-  sealed trait OperationResult
-  case class OperationSuccess(accountId: String, newBalance: Double, message: String) extends OperationResult
-  case class OperationFailure(accountId: String, reason: String) extends OperationResult
-
-  case class BalanceResponse(accountId: String, balance: Double)
-
-  // ===== Messages vers TransactionManager =====
-
-  sealed trait TransactionCommand
-  case class TransferRequest(
-    fromAccountId: String,
-    toAccountId: String,
-    amount: Double,
-    replyTo: akka.actor.typed.ActorRef[TransactionResult]
-  ) extends TransactionCommand
-
-  /** Messages internes pour le protocole de transfert */
-  case class DebitResult(result: OperationResult, toAccountId: String, amount: Double,
-                         replyTo: akka.actor.typed.ActorRef[TransactionResult]) extends TransactionCommand
-  case class CreditResult(result: OperationResult, fromAccountId: String, amount: Double,
-                          replyTo: akka.actor.typed.ActorRef[TransactionResult]) extends TransactionCommand
-  /** Message interne pour le résultat du rollback (compensation) */
-  case class RollbackResult(result: OperationResult, fromId: String, toId: String,
-                            amount: Double, replyTo: akka.actor.typed.ActorRef[TransactionResult]) extends TransactionCommand
-
-  // ===== Réponses du TransactionManager =====
-
-  sealed trait TransactionResult
-  case class TransferSuccess(fromId: String, toId: String, amount: Double, message: String) extends TransactionResult
-  case class TransferFailure(fromId: String, toId: String, amount: Double, reason: String) extends TransactionResult
-
-  // ===== Messages vers BankSupervisor =====
-
-  sealed trait SupervisorCommand
-  case class CreateAccount(id: String, ownerName: String, initialBalance: Double,
-                           replyTo: akka.actor.typed.ActorRef[OperationResult]) extends SupervisorCommand
-  case class PerformDeposit(accountId: String, amount: Double,
-                            replyTo: akka.actor.typed.ActorRef[OperationResult]) extends SupervisorCommand
-  case class PerformWithdraw(accountId: String, amount: Double,
-                             replyTo: akka.actor.typed.ActorRef[OperationResult]) extends SupervisorCommand
-  case class QueryBalance(accountId: String,
-                          replyTo: akka.actor.typed.ActorRef[BalanceResponse]) extends SupervisorCommand
-  case class PerformTransfer(fromId: String, toId: String, amount: Double,
-                             replyTo: akka.actor.typed.ActorRef[TransactionResult]) extends SupervisorCommand
-  case class ListAccounts(replyTo: akka.actor.typed.ActorRef[AccountList]) extends SupervisorCommand
-
-  case class AccountList(accounts: List[String])
-
-  // ===== Messages vers LoggingActor =====
-
-  sealed trait LoggingCommand
-  case class LogTransaction(
-    transactionType: String,
-    fromAccountId: Option[String],
-    toAccountId: Option[String],
-    amount: Option[Double],
-    status: String,
-    details: String,
-    timestamp: Long = System.currentTimeMillis()
-  ) extends LoggingCommand
-  case class LogAccountOperation(
-    operationType: String,
-    accountId: String,
-    amount: Option[Double],
-    newBalance: Double,
-    status: String,
-    details: String,
-    timestamp: Long = System.currentTimeMillis()
-  ) extends LoggingCommand
-  case class GetTransactionLog(replyTo: akka.actor.typed.ActorRef[TransactionLogResponse]) extends LoggingCommand
-
-  case class TransactionLogResponse(transactions: List[String])
+  // Messages Logging
+  type LoggingCommand = LoggingMessages.LoggingCommand
+  type LogTransaction = LoggingMessages.LogTransaction
+  val LogTransaction = LoggingMessages.LogTransaction
+  type LogAccountOperation = LoggingMessages.LogAccountOperation
+  val LogAccountOperation = LoggingMessages.LogAccountOperation
+  type GetTransactionLog = LoggingMessages.GetTransactionLog
+  val GetTransactionLog = LoggingMessages.GetTransactionLog
+  type TransactionLogResponse = LoggingMessages.TransactionLogResponse
+  val TransactionLogResponse = LoggingMessages.TransactionLogResponse
 }

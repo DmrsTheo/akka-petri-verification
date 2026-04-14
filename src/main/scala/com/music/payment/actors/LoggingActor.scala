@@ -7,15 +7,15 @@ import org.slf4j.LoggerFactory
 import scala.collection.mutable
 
 /**
- * Acteur enregistrant toutes les transactions et opérations du système bancaire.
+ * Actor recording all transactions and operations of the banking system.
  *
- * Responsabilités :
- * - Enregistrer les transferts entre comptes
- * - Enregistrer les dépôts et retraits
- * - Maintenir un historique centralisé des transactions
- * - Fournir des rapports sur les transactions
+ * Responsibilities :
+ * - Record transfers between accounts
+ * - Record deposits and withdrawals
+ * - Maintain a centralized transaction history
+ * - Provide transaction reports
  *
- * Chaque transaction est horodatée et complètement tracée pour audit.
+ * Each transaction is timestamped and fully traced for audit.
  */
 object LoggingActor {
 
@@ -23,7 +23,7 @@ object LoggingActor {
 
   def apply(): Behavior[LoggingCommand] = {
     Behaviors.setup { context =>
-      logger.info("LoggingActor démarré - système de journalisation actif")
+      logger.info("LoggingActor started - logging system active")
       active(mutable.ListBuffer.empty[String])
     }
   }
@@ -60,7 +60,7 @@ object LoggingActor {
         Behaviors.same
 
       case GetTransactionLog(replyTo) =>
-        logger.info(s"Demande de consultation du journal des transactions (${transactionLog.length} entrées)")
+        logger.info(s"Transaction log query request (${transactionLog.length} entries)")
         replyTo ! TransactionLogResponse(transactionLog.toList)
         Behaviors.same
     }
@@ -79,7 +79,7 @@ object LoggingActor {
     val from = fromAccountId.getOrElse("N/A")
     val to = toAccountId.getOrElse("N/A")
     val amt = amount.map(_.toString).getOrElse("N/A")
-    s"[$dateTime] [$transactionType] $from → $to | Montant: $amt | Statut: $status | Détails: $details"
+    s"[$dateTime] [$transactionType] $from -> $to | Amount: $amt | Status: $status | Details: $details"
   }
 
   private def formatOperationLog(
@@ -93,6 +93,6 @@ object LoggingActor {
   ): String = {
     val dateTime = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new java.util.Date(timestamp))
     val amt = amount.map(_.toString).getOrElse("N/A")
-    s"[$dateTime] [$operationType] $accountId | Montant: $amt | Nouveau solde: $newBalance | Statut: $status | Détails: $details"
+    s"[$dateTime] [$operationType] $accountId | Amount: $amt | New balance: $newBalance | Status: $status | Details: $details"
   }
 }

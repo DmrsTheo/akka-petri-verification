@@ -20,3 +20,6 @@ libraryDependencies ++= Seq(
 
 // Forking for Akka
 fork := true
+connectInput := true
+scalacOptions ++= Seq("-encoding", "utf8")
+javaOptions ++= Seq("-Dfile.encoding=UTF-8", "-Dsun.stdout.encoding=UTF-8", "-Dsun.stderr.encoding=UTF-8")

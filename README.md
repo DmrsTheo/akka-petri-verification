@@ -43,6 +43,12 @@ src/main/scala/com/music/
 
 ## Lancer le projet
 
+> [!NOTE]
+> **Windows** : pour un affichage correct des accents dans la console, exécutez d'abord :
+> ```powershell
+> chcp 65001
+> ```
+
 ```bash
 # Compiler
 sbt compile

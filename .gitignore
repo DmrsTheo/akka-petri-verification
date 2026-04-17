@@ -17,3 +17,7 @@ Thumbs.db
 *.class
 *.jar
 *.log
+
+# Documents ignorés
+docs/schema-reseau-petri.md
+docs/reseaux-de-petri-debutant.md

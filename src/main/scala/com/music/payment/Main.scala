@@ -23,7 +23,7 @@ object Main extends App {
 
   println()
   println("=" * 70)
-  println("  SYSTÈME DE PAIEMENT DISTRIBUÉ — AKKA + VÉRIFICATION PETRI NET")
+  println("  PAYMENT SYSTEM - AKKA + PETRI NET VERIFICATION")
   println("=" * 70)
   println()
   println("  Choisissez un mode :")

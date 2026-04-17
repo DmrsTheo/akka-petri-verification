@@ -24,14 +24,14 @@ object SimulationRunner {
   def runPetriNetAnalysis(): Unit = {
     println()
     println("=" * 70)
-    println("  ANALYSE FORMELLE — RÉSEAU DE PÉTRI DU SYSTÈME DE PAIEMENT")
+    println("  FORMAL ANALYSIS - PAYMENT SYSTEM PETRI NET")
     println("=" * 70)
     println()
 
-    // === 1. Modèle de transfert ===
-    println("━" * 50)
-    println("  1. MODÈLE DE TRANSFERT (Compte A → Compte B)")
-    println("━" * 50)
+    // === 1. Transfer model ===
+    println("-" * 50)
+    println("  1. TRANSFER MODEL (Account A -> Account B)")
+    println("-" * 50)
 
     val (transferNet, transferMarking) = PaymentPetriNet.build(
       initialBalanceA = 5,
@@ -39,40 +39,40 @@ object SimulationRunner {
       transferAmount = 2
     )
 
-    println(s"\n  Marquage initial: $transferMarking")
-    println(s"  Nombre de places: ${transferNet.places.size}")
-    println(s"  Nombre de transitions: ${transferNet.transitions.size}")
+    println(s"\n  Initial marking: $transferMarking")
+    println(s"  Number of places: ${transferNet.places.size}")
+    println(s"  Number of transitions: ${transferNet.transitions.size}")
 
-    // Explorer l'espace d'états
-    println("\n  → Exploration de l'espace d'états...")
+    // Explore state space
+    println("\n  > Exploring state space...")
     val transferStateSpace = StateSpaceExplorer.explore(transferNet, transferMarking)
     println(s"  ${transferStateSpace.toString.replace("\n", "\n  ")}")
 
-    // Vérification des invariants
-    println("\n  → Vérification des invariants métier...")
+    // Check invariants
+    println("\n  > Checking business invariants...")
 
     val transferInvariants = List(
-      ("Solde Compte A ≥ 0", (m: com.music.petri.model.Marking) =>
+      ("Account A balance >= 0", (m: com.music.petri.model.Marking) =>
         m.getTokens(PaymentPetriNet.accountA) >= 0),
-      ("Solde Compte B ≥ 0", (m: com.music.petri.model.Marking) =>
+      ("Account B balance >= 0", (m: com.music.petri.model.Marking) =>
         m.getTokens(PaymentPetriNet.accountB) >= 0),
-      ("Exclusion mutuelle transfert", (m: com.music.petri.model.Marking) =>
+      ("Transfer mutual exclusion", (m: com.music.petri.model.Marking) =>
         m.getTokens(PaymentPetriNet.transferInProgress) + m.getTokens(PaymentPetriNet.debitDone) <= 1),
-        ("Conservation stricte de l'argent", (m: com.music.petri.model.Marking) => {
-        val argentA = m.getTokens(PaymentPetriNet.accountA)
-        val argentB = m.getTokens(PaymentPetriNet.accountB)
-        // L'argent en cours de transfert (retenu après le débit mais avant le crédit)
-        val argentEnTransit = m.getTokens(PaymentPetriNet.debitDone) * 2 // 2 est le montant du transfert (transferAmount)
-        // La somme doit toujours être égale au total initial (5 dans A + 3 dans B = 8)
-        (argentA + argentB + argentEnTransit) == 8
+        ("Strict money conservation", (m: com.music.petri.model.Marking) => {
+        val accountAMoney = m.getTokens(PaymentPetriNet.accountA)
+        val accountBMoney = m.getTokens(PaymentPetriNet.accountB)
+        // Money in transit (held after debit but before credit)
+        val moneyInTransit = m.getTokens(PaymentPetriNet.debitDone) * 2 // 2 is transfer amount
+        // Sum must always equal total initial (5 in A + 3 in B = 8)
+        (accountAMoney + accountBMoney + moneyInTransit) == 8
       })
     )
 
     val invariantResults = InvariantChecker.fullCheck(transferStateSpace, transferNet, transferInvariants)
     invariantResults.foreach(r => println(s"    $r"))
 
-    // Vérification LTL
-    println("\n  → Vérification des propriétés LTL...")
+    // Check LTL
+    println("\n  > Checking LTL properties...")
 
     val ltlProperties = List(
       LTLChecker.safetyBalanceNonNegative(PaymentPetriNet.accountA),
@@ -86,45 +86,45 @@ object SimulationRunner {
     }
 
     // Deadlock
-    println("\n  → Vérification de l'absence de deadlock...")
+    println("\n  > Checking absence of deadlock...")
     val deadlockResult = LTLChecker.deadlockFreedom(transferStateSpace)
     println(s"    $deadlockResult")
 
-    // === 2. Modèle compte simple ===
+    // === 2. Simple account model ===
     println()
-    println("━" * 50)
-    println("  2. MODÈLE COMPTE SIMPLE (dépôt/retrait)")
-    println("━" * 50)
+    println("-" * 50)
+    println("  2. SIMPLE ACCOUNT MODEL (deposit/withdrawal)")
+    println("-" * 50)
 
     val (singleNet, singleMarking) = PaymentPetriNet.buildSingleAccount(initialBalance = 3)
-    println(s"\n  Marquage initial: $singleMarking")
+    println(s"\n  Initial marking: $singleMarking")
 
     val singleStateSpace = StateSpaceExplorer.explore(singleNet, singleMarking)
     println(s"  ${singleStateSpace.toString.replace("\n", "\n  ")}")
 
-    // === 3. Rapport de synthèse ===
+    // === 3. Synthesis report ===
     println()
-    println("━" * 50)
-    println("  3. RAPPORT DE SYNTHÈSE")
-    println("━" * 50)
+    println("-" * 50)
+    println("  3. SYNTHESIS REPORT")
+    println("-" * 50)
     println()
 
     val allSatisfied = invariantResults.forall(_.satisfied) && deadlockResult.satisfied
     if (allSatisfied) {
-      println("  ✓ RÉSULTAT: Toutes les propriétés sont vérifiées.")
-      println("    Le modèle Petri Net confirme la correction du système Akka.")
-      println("    - Pas de deadlock détecté")
-      println("    - Invariants métier respectés (soldes non-négatifs)")
-      println("    - Propriétés LTL satisfaites (sûreté et vivacité)")
+      println("  + RESULT: All properties are verified.")
+      println("    Petri Net model confirms Akka system correctness.")
+      println("    - No deadlock detected")
+      println("    - Business invariants respected (non-negative balances)")
+      println("    - LTL properties satisfied (safety and liveness)")
     } else {
-      println("  ⚠ RÉSULTAT: Certaines propriétés ne sont PAS vérifiées.")
-      println("    Voir les détails ci-dessus pour les violations détectées.")
+      println("  ! RESULT: Some properties are NOT verified.")
+      println("    See above for violation details.")
       invariantResults.filterNot(_.satisfied).foreach(r => println(s"    - $r"))
     }
 
     println()
     println("=" * 70)
-    println("  FIN DE L'ANALYSE FORMELLE")
+    println("  END OF FORMAL ANALYSIS")
     println("=" * 70)
     println()
   }

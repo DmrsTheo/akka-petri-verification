@@ -6,17 +6,17 @@ import com.music.payment.messages.PaymentMessages._
 import org.slf4j.LoggerFactory
 
 /**
- * Acteur orchestrant les transferts entre comptes.
+ * Actor orchestrating transfers between accounts.
  *
- * Protocole de transfert en 2 phases avec compensation (rollback) :
- * 1. Débiter le compte source
- * 2. Si succès du débit → créditer le compte destination
- *    Si échec du débit → annuler immédiatement
- * 3. Si échec du crédit → ROLLBACK : re-créditer le compte source
+ * 2-phase transfer protocol with compensation (rollback) :
+ * 1. Debit source account
+ * 2. If debit succeeds -> credit destination account
+ *    If debit fails -> cancel immediately
+ * 3. If credit fails -> ROLLBACK : re-credit source account
  *
- * Garantit la cohérence des transactions distribuées :
- * - L'argent n'est jamais perdu
- * - Le solde total du système reste constant
+ * Guarantees distributed transaction consistency :
+ * - Money is never lost
+ * - Total system balance remains constant
  */
 object TransactionManager {
 
@@ -35,22 +35,22 @@ object TransactionManager {
   ): Behavior[TransactionCommand] = {
     Behaviors.receiveMessage {
 
-      // ===== Phase 0 : Réception de la demande de transfert =====
+      // ===== Phase 0 : Receiving transfer request =====
       case TransferRequest(fromId, toId, amount, replyTo) =>
-        logger.info(s"Transfert demandé: $fromId → $toId, montant: $amount")
+        logger.info(s"Transfer requested: $fromId -> $toId, amount: $amount")
         loggingActor ! LogTransaction(
           transactionType = "TRANSFER_INITIATED",
           fromAccountId = Some(fromId),
           toAccountId = Some(toId),
           amount = Some(amount),
           status = "INITIATED",
-          details = s"Transfert initié de $fromId vers $toId"
+          details = s"Transfer initiated from $fromId to $toId"
         )
 
-        // Vérifier que les deux comptes existent AVANT toute opération
+        // Check that both accounts exist BEFORE any operation
         (accounts.get(fromId), accounts.get(toId)) match {
           case (Some(fromAccount), Some(_)) =>
-            // Phase 1 : Débiter le compte source
+            // Phase 1 : Debit source account
             val debitAdapter = context.messageAdapter[OperationResult] {
               result => DebitResult(result, toId, amount, replyTo)
             }
@@ -58,45 +58,45 @@ object TransactionManager {
             Behaviors.same
 
           case (None, _) =>
-            logger.error(s"Compte source $fromId introuvable")
+            logger.error(s"Source account $fromId not found")
             loggingActor ! LogTransaction(
               transactionType = "TRANSFER_FAILED",
               fromAccountId = Some(fromId),
               toAccountId = Some(toId),
               amount = Some(amount),
               status = "FAILED",
-              details = s"Compte source $fromId introuvable"
+              details = s"Source account $fromId not found"
             )
-            replyTo ! TransferFailure(fromId, toId, amount, s"Compte source $fromId introuvable")
+            replyTo ! TransferFailure(fromId, toId, amount, s"Source account $fromId not found")
             Behaviors.same
 
           case (_, None) =>
-            logger.error(s"Compte destination $toId introuvable")
+            logger.error(s"Destination account $toId not found")
             loggingActor ! LogTransaction(
               transactionType = "TRANSFER_FAILED",
               fromAccountId = Some(fromId),
               toAccountId = Some(toId),
               amount = Some(amount),
               status = "FAILED",
-              details = s"Compte destination $toId introuvable"
+              details = s"Destination account $toId not found"
             )
-            replyTo ! TransferFailure(fromId, toId, amount, s"Compte destination $toId introuvable")
+            replyTo ! TransferFailure(fromId, toId, amount, s"Destination account $toId not found")
             Behaviors.same
         }
 
-      // ===== Phase 1 : Résultat du débit =====
+      // ===== Phase 1 : Debit result =====
       case DebitResult(result, toId, amount, replyTo) =>
         result match {
           case OperationSuccess(fromId, _, _) =>
-            // Débit réussi → Phase 2 : Créditer le compte destination
-            logger.info(s"Débit réussi sur $fromId, crédit en cours sur $toId")
+            // Debit succeeded -> Phase 2 : Credit destination account
+            logger.info(s"Debit succeeded on $fromId, crediting $toId")
             loggingActor ! LogTransaction(
               transactionType = "TRANSFER_DEBIT_SUCCESS",
               fromAccountId = Some(fromId),
               toAccountId = Some(toId),
               amount = Some(amount),
               status = "DEBIT_SUCCESSFUL",
-              details = s"Montant débité du compte $fromId"
+              details = s"Amount debited from account $fromId"
             )
             accounts.get(toId) match {
               case Some(toAccount) =>
@@ -106,62 +106,62 @@ object TransactionManager {
                 toAccount ! DepositCmd(amount, creditAdapter)
 
               case None =>
-                logger.error(s"Compte destination $toId disparu pendant la transaction!")
+                logger.error(s"Destination account $toId disappeared during transaction!")
                 loggingActor ! LogTransaction(
                   transactionType = "TRANSFER_FAILED",
                   fromAccountId = Some(fromId),
                   toAccountId = Some(toId),
                   amount = Some(amount),
                   status = "FAILED",
-                  details = s"Compte destination $toId disparu après débit réussi"
+                  details = s"Destination account $toId disappeared after successful debit"
                 )
-                replyTo ! TransferFailure("?", toId, amount, "Compte destination disparu")
+                replyTo ! TransferFailure("?", toId, amount, "Destination account disappeared")
             }
             Behaviors.same
 
           case OperationFailure(fromId, reason) =>
-            // Débit refusé (ex: fonds insuffisants) → pas besoin de rollback
-            logger.warn(s"Transfert échoué - débit refusé sur $fromId: $reason")
+            // Debit refused (e.g. insufficient funds) -> no rollback needed
+            logger.warn(s"Transfer failed - debit refused on $fromId: $reason")
             loggingActor ! LogTransaction(
               transactionType = "TRANSFER_FAILED",
               fromAccountId = Some(fromId),
               toAccountId = Some(toId),
               amount = Some(amount),
               status = "FAILED",
-              details = s"Débit refusé: $reason"
+              details = s"Debit refused: $reason"
             )
-            replyTo ! TransferFailure(fromId, toId, amount, s"Débit refusé: $reason")
+            replyTo ! TransferFailure(fromId, toId, amount, s"Debit refused: $reason")
             Behaviors.same
         }
 
-      // ===== Phase 2 : Résultat du crédit =====
+      // ===== Phase 2 : Credit result =====
       case CreditResult(result, fromId, amount, replyTo) =>
         result match {
           case OperationSuccess(toId, newBalance, _) =>
-            logger.info(s"Transfert terminé avec succès, $toId nouveau solde: $newBalance")
+            logger.info(s"Transfer completed successfully, $toId new balance: $newBalance")
             loggingActor ! LogTransaction(
               transactionType = "TRANSFER_SUCCESS",
               fromAccountId = None,
               toAccountId = Some(toId),
               amount = None,
               status = "SUCCESS",
-              details = s"Transfert complété avec succès, nouveau solde de $toId: $newBalance"
+              details = s"Transfer completed successfully, new balance for $toId: $newBalance"
             )
-            replyTo ! TransferSuccess("source", toId, 0, "Transfert effectué avec succès")
+            replyTo ! TransferSuccess("source", toId, 0, "Transfer completed successfully")
             Behaviors.same
 
           case OperationFailure(toId, reason) =>
-            // Cas critique : le débit a réussi mais le crédit a échoué
-            logger.error(s"ERREUR CRITIQUE: crédit échoué sur $toId après débit réussi: $reason")
+            // Critical case: debit succeeded but credit failed
+            logger.error(s"CRITICAL ERROR: credit failed on $toId after successful debit: $reason")
             loggingActor ! LogTransaction(
               transactionType = "TRANSFER_CRITICAL_FAILURE",
               fromAccountId = None,
               toAccountId = Some(toId),
               amount = None,
               status = "CRITICAL_FAILURE",
-              details = s"Erreur critique: crédit échoué après débit réussi: $reason"
+              details = s"Critical error: credit failed after successful debit: $reason"
             )
-            replyTo ! TransferFailure("source", toId, 0, s"Crédit échoué après débit: $reason")
+            replyTo ! TransferFailure("source", toId, 0, s"Credit failed after debit: $reason")
             Behaviors.same
         }
     }

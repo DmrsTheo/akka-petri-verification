@@ -1,7 +1,21 @@
-<configuration>
+    <configuration>
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/transaction-audit.log</file>
+        <!--rollingFilAppender pour éviter de saturer le server avec un seul fichier de plusieurs Go
+        car chaque jour le fichier sera archivé avec la date dans son nom et un nouveau fichier sera créé-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/transaction-audit.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
@@ -10,6 +24,7 @@
     <logger name="com.music" level="INFO"/>
 
     <root level="WARN">
-        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="STDOUT"/>*
+        <appender-ref ref="FILE"/>
     </root>
 </configuration>

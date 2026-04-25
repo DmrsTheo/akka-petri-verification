@@ -6,6 +6,7 @@ import akka.actor.typed.scaladsl.AskPattern._
 import akka.util.Timeout
 import com.music.payment.actors.BankSupervisor
 import com.music.payment.messages.PaymentMessages._
+import com.music.payment.api.ApiServer
 import com.music.simulation.SimulationRunner
 
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -29,14 +30,49 @@ object Main extends App {
   println("  Choisissez un mode :")
   println("    1. Mode automatique (scénario prédéfini + analyse Petri Net)")
   println("    2. Mode interactif (commandes manuelles)")
+  println("    3. Mode API REST (serveur HTTP pour le frontend)")
   println()
-  print("  Votre choix [1/2] : ")
+  print("  Votre choix [1/2/3] : ")
 
   val choice = StdIn.readLine().trim
 
   choice match {
     case "2" => runInteractiveMode()
+    case "3" => runApiMode()
     case _   => runAutomaticMode()
+  }
+
+  // ===== Mode API REST =====
+  def runApiMode(): Unit = {
+    val system = ActorSystem(BankSupervisor(), "payment-system")
+    implicit val ec: ExecutionContext = system.executionContext
+
+    try {
+      println()
+      println("━" * 50)
+      println("  MODE API REST")
+      println("━" * 50)
+      println()
+
+      // Démarrer le serveur API
+      val serverFuture = ApiServer.start(system, "0.0.0.0", 8080)
+      
+      Await.result(serverFuture, 10.seconds)
+      
+      println()
+      println("  Le serveur API est en cours d'exécution.")
+      println("  Appuyez sur Entrée pour arrêter le serveur...")
+      println()
+      
+      StdIn.readLine()
+      
+    } finally {
+      println()
+      println("  Arrêt du serveur API...")
+      system.terminate()
+      Await.result(system.whenTerminated, 10.seconds)
+      println("  Système arrêté. Au revoir !")
+    }
   }
 
   // ===== Mode interactif =====

@@ -3,11 +3,19 @@ version := "1.0.0"
 scalaVersion := "2.13.12"
 
 lazy val akkaVersion = "2.8.5"
+lazy val akkaHttpVersion = "10.5.3"
+lazy val sprayJsonVersion = "1.3.6"
 
 libraryDependencies ++= Seq(
   // Akka
   "com.typesafe.akka" %% "akka-actor-typed" % akkaVersion,
   "com.typesafe.akka" %% "akka-actor"       % akkaVersion,
+  
+  // Akka HTTP & Streams
+  "com.typesafe.akka" %% "akka-http"            % akkaHttpVersion,
+  "com.typesafe.akka" %% "akka-stream"          % akkaVersion,
+  "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion,
+  "io.spray" %% "spray-json" % sprayJsonVersion,
 
   // Logging
   "ch.qos.logback" % "logback-classic" % "1.4.11",

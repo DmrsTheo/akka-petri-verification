@@ -17,3 +17,8 @@ Thumbs.db
 *.class
 *.jar
 *.log
+
+# Frontend
+node_modules/
+dist/
+.DS_Store

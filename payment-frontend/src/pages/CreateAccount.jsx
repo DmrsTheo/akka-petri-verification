@@ -4,7 +4,7 @@ import ResponseBox from '../components/ResponseBox'
 import RouteTag from '../components/RouteTag'
 
 export default function CreateAccount() {
-  const [form, setForm] = useState({ id: '', ownerName: '', initialBalance: '' })
+  const [form, setForm] = useState({ id: '', ownerName: '' })
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
 
@@ -12,14 +12,14 @@ export default function CreateAccount() {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
 
   const handleSubmit = async () => {
-    const { id, ownerName, initialBalance } = form
-    if (!id.trim() || !ownerName.trim() || initialBalance === '') return
+    const { id, ownerName } = form
+    if (!id.trim() || !ownerName.trim()) return
 
     setLoading(true)
     try {
-      const res = await createAccount(id.trim(), ownerName.trim(), parseFloat(initialBalance))
+      const res = await createAccount(id.trim(), ownerName.trim(), 0)
       setResult(res)
-      if (res.ok) setForm({ id: '', ownerName: '', initialBalance: '' })
+      if (res.ok) setForm({ id: '', ownerName: '' })
     } catch (e) {
       setResult({ ok: false, data: { error: e.message } })
     } finally {
@@ -30,7 +30,7 @@ export default function CreateAccount() {
   return (
     <div>
       <h1 className="text-xl font-semibold mb-1">Créer un compte</h1>
-      <p className="text-sm text-stone-500 mb-6">Ouvre un nouveau compte avec un solde initial.</p>
+      <p className="text-sm text-stone-500 mb-6">Ouvre un nouveau compte bancaire.</p>
 
       <div className="card">
         <RouteTag method="POST" path="/api/accounts" />
@@ -54,19 +54,6 @@ export default function CreateAccount() {
               value={form.ownerName}
               onChange={handleChange}
               placeholder="ex: Alice Martin"
-            />
-          </div>
-          <div>
-            <label className="label">Solde initial (€)</label>
-            <input
-              className="input"
-              name="initialBalance"
-              type="number"
-              min="0"
-              step="0.01"
-              value={form.initialBalance}
-              onChange={handleChange}
-              placeholder="ex: 1000"
             />
           </div>
         </div>

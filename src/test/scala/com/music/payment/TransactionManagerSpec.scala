@@ -1,7 +1,7 @@
 package com.music.payment
 
 import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
-import com.music.payment.actors.{BankAccount, LoggingActor, TransactionManager}
+import com.music.payment.actors.{BankAccount, BankSupervisor, LoggingActor, TransactionManager}
 import com.music.payment.messages.PaymentMessages._
 import org.scalatest.freespec.AnyFreeSpecLike
 
@@ -136,6 +136,34 @@ class TransactionManagerSpec extends ScalaTestWithActorTestKit with AnyFreeSpecL
           assert(logs.exists(_.contains("SUCCESS")), "Les logs devraient indiquer le succès")
         case _ =>
           fail("Le transfert aurait dû réussir")
+      }
+    }
+
+    "refuser un transfert vers le même compte" in {
+      val txProbe = createTestProbe[TransactionResult]()
+      val accountProbe = createTestProbe[OperationResult]()
+
+      val supervisor = spawn(BankSupervisor())
+
+      // Créer d'abord un compte
+      supervisor ! CreateAccount("same-account", "Test User", 1000.0, accountProbe.ref)
+      accountProbe.receiveMessage() match {
+        case OperationSuccess(_, _, _) => // Compte créé avec succès
+        case _ => fail("Le compte n'a pas pu être créé")
+      }
+
+      // Maintenant essayer de transférer vers le même compte
+      supervisor ! PerformTransfer("same-account", "same-account", 100.0, txProbe.ref)
+
+      val result = txProbe.receiveMessage()
+      result match {
+        case TransferFailure(fromId, toId, amount, reason) =>
+          assert(fromId == "same-account")
+          assert(toId == "same-account")
+          assert(amount == 100.0)
+          assert(reason.contains("Impossible de transférer vers le même compte"))
+        case _ =>
+          fail("Le transfert vers le même compte aurait dû être refusé")
       }
     }
   }

@@ -95,13 +95,18 @@ object BankSupervisor {
         Behaviors.same
 
       case PerformTransfer(fromId, toId, amount, replyTo) =>
-        // Create a dedicated TransactionManager for this transfer
-        val txManager = context.spawn(
-          TransactionManager(accounts, loggingActor),
-          s"tx-$fromId-$toId-${System.nanoTime()}"
-        )
-        txManager ! TransferRequest(fromId, toId, amount, replyTo)
-        Behaviors.same
+        if (fromId == toId) {
+          replyTo ! TransferFailure(fromId, toId, amount, "Impossible de transférer vers le même compte")
+          Behaviors.same
+        } else {
+          // Create a dedicated TransactionManager for this transfer
+          val txManager = context.spawn(
+            TransactionManager(accounts, loggingActor),
+            s"tx-$fromId-$toId-${System.nanoTime()}"
+          )
+          txManager ! TransferRequest(fromId, toId, amount, replyTo)
+          Behaviors.same
+        }
 
       case ListAccounts(replyTo) =>
         replyTo ! AccountList(accounts.keys.toList.sorted)

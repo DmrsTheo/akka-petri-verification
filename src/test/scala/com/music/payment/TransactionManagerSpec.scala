@@ -3,15 +3,15 @@ package com.music.payment
 import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
 import com.music.payment.actors.{BankAccount, LoggingActor, TransactionManager}
 import com.music.payment.messages.PaymentMessages._
-import org.scalatest.wordspec.AnyWordSpecLike
+import org.scalatest.freespec.AnyFreeSpecLike
 
 /**
  * Tests unitaires pour l'acteur TransactionManager.
  * Vérifie que les transactions sont correctement enregistrées dans les logs.
  */
-class TransactionManagerSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
+class TransactionManagerSpec extends ScalaTestWithActorTestKit with AnyFreeSpecLike {
 
-  "TransactionManager" should {
+  "TransactionManager" - {
 
     "effectuer un transfert réussi et enregistrer les logs" in {
       val txProbe = createTestProbe[TransactionResult]()

@@ -3,13 +3,13 @@ package com.music.petri
 import com.music.petri.model._
 import com.music.petri.engine._
 import com.music.petri.engine.LTLChecker._
-import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.should.Matchers
 
 /**
  * Tests unitaires pour le vérificateur LTL.
  */
-class LTLCheckerSpec extends AnyWordSpec with Matchers {
+class LTLCheckerSpec extends AnyFreeSpec with Matchers {
 
   // Réseau de Pétri simple pour les tests
   private def simpleNet: (PetriNet, Marking) = {
@@ -28,7 +28,7 @@ class LTLCheckerSpec extends AnyWordSpec with Matchers {
     (net, marking)
   }
 
-  "LTLChecker" should {
+  "LTLChecker" - {
 
     "vérifier Always (sûreté) — satisfait" in {
       val (net, marking) = simpleNet

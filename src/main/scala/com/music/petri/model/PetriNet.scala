@@ -89,7 +89,7 @@ case class PetriNet(
     inputsOf(t).forall { arc =>
       arc.arcType match {
         case Normal    => marking.getTokens(arc.place) >= arc.weight
-        case Inhibitor => marking.getTokens(arc.place) == 0
+        case Inhibitor => marking.getTokens(arc.place) < arc.weight
       }
     }
   }

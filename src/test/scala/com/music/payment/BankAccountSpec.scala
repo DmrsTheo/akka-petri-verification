@@ -3,14 +3,14 @@ package com.music.payment
 import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
 import com.music.payment.actors.BankAccount
 import com.music.payment.messages.PaymentMessages._
-import org.scalatest.wordspec.AnyWordSpecLike
+import org.scalatest.freespec.AnyFreeSpecLike
 
 /**
  * Tests unitaires pour l'acteur BankAccount.
  */
-class BankAccountSpec extends ScalaTestWithActorTestKit with AnyWordSpecLike {
+class BankAccountSpec extends ScalaTestWithActorTestKit with AnyFreeSpecLike {
 
-  "BankAccount" should {
+  "BankAccount" - {
 
     "accepter un dépôt valide" in {
       val probe = createTestProbe[OperationResult]()

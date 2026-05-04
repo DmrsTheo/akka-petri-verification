@@ -58,29 +58,29 @@ object TransactionManager {
             Behaviors.same
 
           case (None, _) =>
-            logger.error(s"Source account $fromId not found")
+            logger.error(s"Source account $fromId introuvable")
             loggingActor ! LogTransaction(
               transactionType = "TRANSFER_FAILED",
               fromAccountId = Some(fromId),
               toAccountId = Some(toId),
               amount = Some(amount),
               status = "FAILED",
-              details = s"Source account $fromId not found"
+              details = s"Source account $fromId introuvable"
             )
-            replyTo ! TransferFailure(fromId, toId, amount, s"Source account $fromId not found")
+            replyTo ! TransferFailure(fromId, toId, amount, s"Source account $fromId introuvable")
             Behaviors.same
 
           case (_, None) =>
-            logger.error(s"Destination account $toId not found")
+            logger.error(s"Destination account $toId introuvable")
             loggingActor ! LogTransaction(
               transactionType = "TRANSFER_FAILED",
               fromAccountId = Some(fromId),
               toAccountId = Some(toId),
               amount = Some(amount),
               status = "FAILED",
-              details = s"Destination account $toId not found"
+              details = s"Destination account $toId introuvable"
             )
-            replyTo ! TransferFailure(fromId, toId, amount, s"Destination account $toId not found")
+            replyTo ! TransferFailure(fromId, toId, amount, s"Destination account $toId introuvable")
             Behaviors.same
         }
 

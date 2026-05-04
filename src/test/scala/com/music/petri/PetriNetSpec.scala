@@ -3,15 +3,15 @@ package com.music.petri
 import com.music.petri.model._
 import com.music.petri.engine._
 import com.music.petri.models.PaymentPetriNet
-import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.should.Matchers
 
 /**
  * Tests unitaires pour le moteur de réseau de Pétri.
  */
-class PetriNetSpec extends AnyWordSpec with Matchers {
+class PetriNetSpec extends AnyFreeSpec with Matchers {
 
-  "PetriNet" should {
+  "PetriNet" - {
 
     "détecter les transitions activées" in {
       val p1 = Place("p1", "Place1")
@@ -77,7 +77,7 @@ class PetriNetSpec extends AnyWordSpec with Matchers {
     }
   }
 
-  "StateSpaceExplorer" should {
+  "StateSpaceExplorer" - {
 
     "explorer l'espace d'états complet" in {
       val p1 = Place("p1", "A")
@@ -120,7 +120,7 @@ class PetriNetSpec extends AnyWordSpec with Matchers {
     }
   }
 
-  "InvariantChecker" should {
+  "InvariantChecker" - {
 
     "vérifier la conservation des jetons" in {
       val p1 = Place("p1", "A")
@@ -162,7 +162,7 @@ class PetriNetSpec extends AnyWordSpec with Matchers {
     }
   }
 
-  "PaymentPetriNet" should {
+  "PaymentPetriNet" - {
 
     "construire un modèle valide" in {
       val (net, marking) = PaymentPetriNet.build()

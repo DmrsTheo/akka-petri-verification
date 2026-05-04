@@ -18,7 +18,7 @@ case class Account(
 
   def withdraw(amount: Double): Either[String, Account] = {
     if (amount <= 0) Left("Withdrawal amount must be positive")
-    else if (amount > balance) Left(s"Insufficient funds: balance=$balance, requested=$amount")
+    else if (amount > balance) Left(s"Fonds insuffisants: balance=$balance, requested=$amount")
     else Right(copy(balance = balance - amount))
   }
 }

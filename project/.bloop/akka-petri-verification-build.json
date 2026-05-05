@@ -2,15 +2,15 @@
     "version": "1.4.0",
     "project": {
         "name": "akka-petri-verification-build",
-        "directory": "H:\\Desktop\\S4\\projet_scala\\akka-petri-verification\\project",
-        "workspaceDir": "H:\\Desktop\\S4\\projet_scala\\akka-petri-verification\\project",
+        "directory": "H:\\Desktop\\Ing-2\\Prog fon\\Projet\\akka-petri-verification\\project",
+        "workspaceDir": "H:\\Desktop\\Ing-2\\Prog fon\\Projet\\akka-petri-verification\\project",
         "sources": [
-            "H:\\Desktop\\S4\\projet_scala\\akka-petri-verification\\project\\src\\main\\scala",
-            "H:\\Desktop\\S4\\projet_scala\\akka-petri-verification\\project\\src\\main\\scala-2.12",
-            "H:\\Desktop\\S4\\projet_scala\\akka-petri-verification\\project\\src\\main\\scala-2",
-            "H:\\Desktop\\S4\\projet_scala\\akka-petri-verification\\project\\src\\main\\java",
-            "H:\\Desktop\\S4\\projet_scala\\akka-petri-verification\\project\\src\\main\\scala-sbt-1.0",
-            "H:\\Desktop\\S4\\projet_scala\\akka-petri-verification\\project\\target\\scala-2.12\\sbt-1.0\\src_managed\\main"
+            "H:\\Desktop\\Ing-2\\Prog fon\\Projet\\akka-petri-verification\\project\\src\\main\\scala",
+            "H:\\Desktop\\Ing-2\\Prog fon\\Projet\\akka-petri-verification\\project\\src\\main\\scala-2.12",
+            "H:\\Desktop\\Ing-2\\Prog fon\\Projet\\akka-petri-verification\\project\\src\\main\\scala-2",
+            "H:\\Desktop\\Ing-2\\Prog fon\\Projet\\akka-petri-verification\\project\\src\\main\\java",
+            "H:\\Desktop\\Ing-2\\Prog fon\\Projet\\akka-petri-verification\\project\\src\\main\\scala-sbt-1.0",
+            "H:\\Desktop\\Ing-2\\Prog fon\\Projet\\akka-petri-verification\\project\\target\\scala-2.12\\sbt-1.0\\src_managed\\main"
         ],
         "dependencies": [
             
@@ -104,11 +104,11 @@
             "C:\\Users\\Administrateur\\AppData\\Local\\Coursier\\Cache\\v1\\https\\repo1.maven.org\\maven2\\org\\reactivestreams\\reactive-streams\\1.0.3\\reactive-streams-1.0.3.jar",
             "C:\\Users\\Administrateur\\AppData\\Local\\Coursier\\Cache\\v1\\https\\repo1.maven.org\\maven2\\com\\typesafe\\config\\1.4.2\\config-1.4.2.jar"
         ],
-        "out": "H:\\Desktop\\S4\\projet_scala\\akka-petri-verification\\project\\.bloop\\akka-petri-verification-build",
-        "classesDir": "H:\\Desktop\\S4\\projet_scala\\akka-petri-verification\\project\\.bloop\\akka-petri-verification-build\\scala-2.12\\sbt-1.0\\classes",
+        "out": "H:\\Desktop\\Ing-2\\Prog fon\\Projet\\akka-petri-verification\\project\\.bloop\\akka-petri-verification-build",
+        "classesDir": "H:\\Desktop\\Ing-2\\Prog fon\\Projet\\akka-petri-verification\\project\\.bloop\\akka-petri-verification-build\\scala-2.12\\sbt-1.0\\classes",
         "resources": [
-            "H:\\Desktop\\S4\\projet_scala\\akka-petri-verification\\project\\src\\main\\resources",
-            "H:\\Desktop\\S4\\projet_scala\\akka-petri-verification\\project\\target\\scala-2.12\\sbt-1.0\\resource_managed\\main"
+            "H:\\Desktop\\Ing-2\\Prog fon\\Projet\\akka-petri-verification\\project\\src\\main\\resources",
+            "H:\\Desktop\\Ing-2\\Prog fon\\Projet\\akka-petri-verification\\project\\target\\scala-2.12\\sbt-1.0\\resource_managed\\main"
         ],
         "scala": {
             "organization": "org.scala-lang",
@@ -215,7 +215,7 @@
             "config": {
                 "home": "C:\\Program Files\\Java\\jdk-21",
                 "options": [
-                    "-Duser.dir=H:\\Desktop\\S4\\projet_scala\\akka-petri-verification\\project"
+                    "-Duser.dir=H:\\Desktop\\Ing-2\\Prog fon\\Projet\\akka-petri-verification\\project"
                 ]
             },
             "mainClass": [
@@ -224,11 +224,11 @@
             "runtimeConfig": {
                 "home": "C:\\Program Files\\Java\\jdk-21",
                 "options": [
-                    "-Duser.dir=H:\\Desktop\\S4\\projet_scala\\akka-petri-verification\\project"
+                    "-Duser.dir=H:\\Desktop\\Ing-2\\Prog fon\\Projet\\akka-petri-verification\\project"
                 ]
             },
             "classpath": [
-                "H:\\Desktop\\S4\\projet_scala\\akka-petri-verification\\project\\.bloop\\akka-petri-verification-build\\scala-2.12\\sbt-1.0\\classes",
+                "H:\\Desktop\\Ing-2\\Prog fon\\Projet\\akka-petri-verification\\project\\.bloop\\akka-petri-verification-build\\scala-2.12\\sbt-1.0\\classes",
                 "C:\\Users\\Administrateur\\AppData\\Local\\Coursier\\Cache\\v1\\https\\repo1.maven.org\\maven2\\ch\\epfl\\scala\\sbt-bloop_2.12_1.0\\2.0.19\\sbt-bloop_2.12_1.0-2.0.19.jar",
                 "C:\\Users\\Administrateur\\AppData\\Local\\Coursier\\Cache\\v1\\https\\repo1.maven.org\\maven2\\ch\\epfl\\scala\\bloop-config_2.12\\2.3.3\\bloop-config_2.12-2.3.3.jar",
                 "C:\\Users\\Administrateur\\AppData\\Local\\Coursier\\Cache\\v1\\https\\repo1.maven.org\\maven2\\com\\github\\plokhotnyuk\\jsoniter-scala\\jsoniter-scala-core_2.12\\2.13.5.2\\jsoniter-scala-core_2.12-2.13.5.2.jar",
